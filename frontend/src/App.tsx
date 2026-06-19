@@ -28,7 +28,7 @@ function App() {
             <Route path="/artikel" element={<ArtikelIndex />} />
             <Route path="/artikel/create-artikel" element={<CreateArtikel />} />
             <Route path="/kontak" element={<KontakIndex />} />
-            <Route path="/kontak/create-kontak" element={<EditKontak />} />
+            <Route path="/kontak/edit-kontak/:id" element={<EditKontak />} />
           </Route>
         </Route>
       </Routes>

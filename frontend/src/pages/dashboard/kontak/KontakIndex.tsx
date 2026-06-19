@@ -14,7 +14,7 @@ interface Kontak {
   youtube: string;
 }
 
-const API_URL = "http://localhost:3000/kontak";
+const API_URL = "http://localhost:3000/informasi";
 
 export default function KontakIndex() {
   const [kontakData, setKontakData] = useState<Kontak[]>([]);

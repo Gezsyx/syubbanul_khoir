@@ -11,7 +11,7 @@ interface KontakForm {
   youtube: string;
 }
 
-const API_URL = "http://localhost:3000/kontak";
+const API_URL = "http://localhost:3000/informasi";
 
 export default function EditKontak() {
   const { id } = useParams<{ id: string }>();
@@ -83,16 +83,15 @@ export default function EditKontak() {
   }
 
   return (
-    <div className="p-4">
-      <div className="max-w-4xl mx-auto bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+    <div className="p-2">
         {/* HEADER FORM */}
-        <div className="border-b border-gray-100 px-8 py-6">
+        <div className="border-b border-gray-100 p-6">
           <h1 className="text-3xl font-bold text-gray-900">Edit Data Kontak</h1>
           <p className="text-gray-500 mt-1">Perbarui nomor hubungi kami dan akun media sosial resmi mading digital.</p>
         </div>
 
         {/* INPUT GRID FORM */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* NO TELEPON */}
@@ -186,6 +185,5 @@ export default function EditKontak() {
           </div>
         </form>
       </div>
-    </div>
   );
 }
