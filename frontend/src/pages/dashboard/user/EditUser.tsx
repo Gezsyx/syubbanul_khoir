@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { API } from "../../../lib/axios"; 
-import { authStore } from "../../../store/AuthStore"; // 👈 1. Impor authStore untuk cek user login
+import { authStore } from "../../../store/AuthStore"; 
 import { Loader2, ImageIcon, Eye, EyeOff } from "lucide-react";
 
 interface UserForm {
   name: string;
   username: string;
   password?: string;
-  foto: string;
+  foto: FileList; // 👈 1. Diubah menjadi FileList
 }
 
 export default function EditUser() {
@@ -18,6 +18,7 @@ export default function EditUser() {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentFotoUrl, setCurrentFotoUrl] = useState<string | null>(null); // 👈 2. State untuk menyimpan URL foto lama dari database
 
   const {
     register,
@@ -27,7 +28,15 @@ export default function EditUser() {
     formState: { errors },
   } = useForm<UserForm>();
 
-  const fotoPreview = watch("foto");
+  const fotoWatch = watch("foto"); // 👈 3. Pantau input file foto
+
+  // Logika Pratinjau Gambar: Jika ada file baru gunakan blob lokal, jika tidak gunakan url dari database
+  const handleImagePreview = () => {
+    if (fotoWatch && fotoWatch.length > 0) {
+      return URL.createObjectURL(fotoWatch[0]);
+    }
+    return currentFotoUrl; // Fallback ke URL avatar user yang sudah ada
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,12 +46,15 @@ export default function EditUser() {
         const result = res.data;
         const data = result.data || result.user || result;
 
+        // 👈 4. Hanya isi data teks ke form reset. String URL tidak boleh di-reset ke input file.
         reset({
           name: data.name || "",
           username: data.username || "",
-          password: "", // 👈 2. Biarkan password kosong secara default saat muat data
-          foto: data.foto || "",
+          password: "", 
         });
+
+        // Simpan URL foto saat ini ke state pendukung
+        setCurrentFotoUrl(data.foto || null);
       } catch (error) {
         console.error(error);
         alert("Data user tidak ditemukan");
@@ -54,36 +66,43 @@ export default function EditUser() {
     if (id) fetchUser();
   }, [id, reset, navigate]);
 
+  // 👈 5. Mengubah pengiriman payload JSON menjadi FormData
   const onSubmit = async (data: UserForm) => {
     try {
       setLoading(true);
 
-      // 👈 3. Buat objek payload baru tanpa menyertakan password kosong
-      const updateData: any = {
-        name: data.name,
-        username: data.username,
-        foto: data.foto,
-      };
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("username", data.username);
 
-      // Hanya kirim password ke backend jika diisi oleh user
+      // Hanya kirim password jika diisi oleh user
       if (data.password && data.password.trim() !== "") {
-        updateData.password = data.password;
+        formData.append("password", data.password);
       }
 
-      // Kirim data hasil filter ke API
-      await API.put(`/users/${id}`, updateData);
+      // Hanya lampirkan file foto baru jika user memilih berkas baru di komputernya
+      if (data.foto && data.foto.length > 0) {
+        formData.append("foto", data.foto[0]);
+      }
+
+      // Kirim data update menggunakan multipart/form-data
+      await API.put(`/users/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       alert("User berhasil diupdate!");
 
-      // 👈 4. Cek apakah user yang diedit adalah akun yang sedang digunakan login
-      const loggedInUser = authStore.getState().user; // Kesesuaian properti (misal: .user atau .currentUser) bisa disesuaikan dengan isi AuthStore Anda
+      // Cek apakah user yang diedit adalah akun yang sedang digunakan login
+      const loggedInUser = authStore.getState().user; 
       
       if (loggedInUser && String(loggedInUser.id) === String(id)) {
         alert("Profil Anda telah diperbarui. Silakan login kembali dengan data baru.");
-        authStore.getState().logout(); // Logout otomatis
-        navigate("/login"); // Arahkan ke halaman login
+        authStore.getState().logout(); 
+        navigate("/login"); 
       } else {
-        navigate("/user"); // Jika mengedit user lain, kembali ke daftar user
+        navigate("/user"); 
       }
     } catch (error: any) {
       console.error(error);
@@ -163,7 +182,6 @@ export default function EditUser() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Ubah password jika diperlukan (Kosongkan jika tidak ingin diubah)"
                 {...register("password", {
-                  // 👈 5. Gunakan custom validate agar minimal 6 karakter hanya dicek jika ada inputan
                   validate: (value) => 
                     !value || value.length >= 6 || "Password minimal 6 karakter"
                 })}
@@ -186,23 +204,20 @@ export default function EditUser() {
             )}
           </div>
 
-          {/* URL FOTO */}
+          {/* GANTI FOTO PROFIL (OPTIONAL) */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-gray-700">
-              URL Foto
+              Ganti Foto Profil (Opsional)
             </label>
             <input
-              type="text"
-              {...register("foto", { required: "URL Foto wajib diisi" })}
-              className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ${
-                errors.foto
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-200 focus:ring-blue-500"
-              }`}
+              type="file" // 👈 6. Diubah dari tipe text menjadi file input asli
+              accept="image/*"
+              {...register("foto")} // Dikosongkan validasi required agar opsional saat edit
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
-            {errors.foto && (
-              <p className="text-sm text-red-500">{errors.foto.message}</p>
-            )}
+            <p className="text-xs text-gray-400 mt-1">
+              Kosongkan jika tidak ingin mengubah foto profil saat ini.
+            </p>
           </div>
         </div>
 
@@ -212,14 +227,11 @@ export default function EditUser() {
             Preview Image
           </label>
           <div className="w-4/5 aspect-square border border-dashed border-gray-300 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
-            {fotoPreview ? (
+            {handleImagePreview() ? ( // 👈 7. Menggunakan fungsi gabungan pratinjau (file baru / foto DB lama)
               <img
-                src={fotoPreview}
+                src={handleImagePreview()!}
                 alt="Preview"
                 className="w-full h-full object-cover"
-                onError={(e) => { 
-                  (e.target as HTMLImageElement).src = "https://placehold.co/400?text=Foto+Tidak+Ditemukan"; 
-                }}
               />
             ) : (
               <div className="flex flex-col items-center text-gray-400">
