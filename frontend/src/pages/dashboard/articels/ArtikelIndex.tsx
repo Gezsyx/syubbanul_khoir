@@ -11,13 +11,15 @@ import {
   Calendar,
 } from "lucide-react";
 
+
 interface Artikel {
   id: number;
   foto: string;
   judul: string;
   isi: string;
-  created_at: string;
+  createdAt: string; // 👈 Ubah dari created_at menjadi createdAt
 }
+
 
 const ITEMS_PER_PAGE = 7;
 
@@ -165,7 +167,7 @@ export default function ArtikelIndex() {
                         <td className="px-6 py-4 text-gray-600 text-xs">
                           <div className="flex items-center gap-1.5">
                             <Calendar size={14} className="text-gray-400" />
-                            <span>{formatTanggal(item.created_at)}</span>
+                            <span>{formatTanggal(item.createdAt)}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">

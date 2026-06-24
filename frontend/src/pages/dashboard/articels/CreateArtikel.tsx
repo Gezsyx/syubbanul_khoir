@@ -2,12 +2,12 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ImageIcon, FileText } from "lucide-react";
 import { useState } from "react";
-import { API } from "../../../lib/axios"; // 👈 1. Hubungkan ke instance Axios kamu
+import { API } from "../../../lib/axios"; 
 
 interface ArtikelForm {
   judul: string;
   isi: string;
-  foto: string;
+  foto: FileList; // 👈 1. Diubah dari string menjadi FileList untuk menangani file asli
 }
 
 export default function CreateArtikel() {
@@ -23,26 +23,42 @@ export default function CreateArtikel() {
 
   // Memantau input form secara real-time
   const judulPreview = watch("judul");
-  const fotoPreview = watch("foto");
+  const fotoWatch = watch("foto"); // 👈 2. Pantau properti file foto
   const isiPreview = watch("isi");
 
-  // 👈 2. Menggunakan API.post untuk mengirim data
+  // Logika konversi file gambar lokal untuk kebutuhan Live Preview
+  const handleImagePreview = () => {
+    if (fotoWatch && fotoWatch.length > 0) {
+      return URL.createObjectURL(fotoWatch[0]); // Membuat string URL temporary dari file lokal
+    }
+    return null;
+  };
+
+  // 👈 3. Mengubah pengiriman JSON biasa menjadi FormData
   const onSubmit = async (data: ArtikelForm) => {
     try {
       setLoading(true);
-      const payload = {
-        ...data,
-        created_at: new Date().toISOString(),
-      };
+      
+      const formData = new FormData();
+      formData.append("judul", data.judul);
+      formData.append("isi", data.isi);
+      
+      // Ambil file pertama dari elemen input file mading jika tersedia
+      if (data.foto && data.foto.length > 0) {
+        formData.append("foto", data.foto[0]); // Key "foto" harus sinkron dengan upload.single("foto") di backend
+      }
 
-      // Mengirim data menggunakan instance Axios
-      await API.post("/artikel", payload);
+      // Mengirim multipart/form-data menggunakan instance Axios
+      await API.post("/artikel", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       alert("Artikel berhasil diterbitkan!");
       navigate("/artikel");
     } catch (error: any) {
       console.error(error);
-      // Mengambil pesan error dari response backend jika tersedia
       const errorMessage = error.response?.data?.message || "Gagal menerbitkan artikel";
       alert(errorMessage);
     } finally {
@@ -68,7 +84,7 @@ export default function CreateArtikel() {
         onSubmit={handleSubmit(onSubmit)}
         className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6"
       >
-        {/* KOLOM KIRI: INPUT FORM (40% Lebar pada Layar Besar) */}
+        {/* KOLOM KIRI: INPUT FORM */}
         <div className="lg:col-span-5 space-y-5">
           {/* JUDUL ARTIKEL */}
           <div className="flex flex-col gap-2">
@@ -90,19 +106,17 @@ export default function CreateArtikel() {
             )}
           </div>
 
-          {/* URL FOTO UTAMA */}
+          {/* UNGGAH FILE FOTO COVÈR */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-gray-700">
-              URL Foto Cover
+              File Foto Cover
             </label>
             <input
-              type="text"
-              placeholder="https://example.com/foto-berita.jpg"
-              {...register("foto", { required: "Foto cover wajib diisi" })}
-              className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 text-sm ${
-                errors.foto
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-200 focus:ring-blue-500"
+              type="file" // 👈 4. Mengubah tipe teks (link) menjadi input file asli
+              accept="image/*" // Membatasi agar pengguna hanya bisa memilih file gambar
+              {...register("foto", { required: "Foto cover mading wajib diunggah" })}
+              className={`w-full border rounded-xl px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${
+                errors.foto ? "border-red-500" : "border-gray-200"
               }`}
             />
             {errors.foto && (
@@ -117,7 +131,7 @@ export default function CreateArtikel() {
             </label>
             <textarea
               rows={12}
-              placeholder="Tuliskan isi berita atau materi artikel lengkap di sini... (Gunakan enter untuk paragraf baru)"
+              placeholder="Tuliskan isi berita atau materi artikel lengkap di sini..."
               {...register("isi", {
                 required: "Isi artikel tidak boleh kosong",
                 minLength: { value: 20, message: "Konten terlalu pendek" },
@@ -134,7 +148,7 @@ export default function CreateArtikel() {
           </div>
         </div>
 
-        {/* KOLOM KANAN: LIVE SCROLLABLE PREVIEW (70% Lebar pada Layar Besar) */}
+        {/* KOLOM KANAN: LIVE SCROLLABLE PREVIEW */}
         <div className="lg:col-span-7 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-gray-700">
@@ -142,9 +156,7 @@ export default function CreateArtikel() {
             </label>
           </div>
 
-          {/* Jendela Browser Mockup dengan Fitur Scroll Otomatis */}
           <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm h-140 overflow-y-auto custom-scrollbar">
-            {/* Isi Konten Halaman Artikel */}
             <div className="p-6 lg:p-8 space-y-5">
               {/* 1. Komponen Judul Utama */}
               <h1
@@ -155,22 +167,18 @@ export default function CreateArtikel() {
                 {judulPreview || "Lorem Ipsum Dolor sit Amet"}
               </h1>
 
-              {/* 2. Metadata: Tanggal & Simulasi Tombol Share */}
+              {/* 2. Metadata */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 text-xs text-gray-400 font-medium">
                 <div>{waktuSekarang}</div>
               </div>
 
-              {/* 3. Komponen Foto Cover Utama */}
+              {/* 3. Komponen Foto Cover Utama (Live Object Preview) */}
               <div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-50 border flex items-center justify-center group relative">
-                {fotoPreview ? (
+                {fotoWatch && fotoWatch.length > 0 ? (
                   <img
-                    src={fotoPreview}
+                    src={handleImagePreview() || ""} // 👈 5. Menggunakan URL blob lokal hasil upload file
                     alt="Article Cover Preview"
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://placehold.co/800x500?text=Format+Tautan+Gambar+Salah";
-                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center text-gray-400 p-4 text-center">
@@ -182,7 +190,7 @@ export default function CreateArtikel() {
                 )}
               </div>
 
-              {/* 4. Komponen Isi Berita dengan Dukungan Paragraf Luas */}
+              {/* 4. Komponen Isi Berita */}
               <div
                 className={`text-gray-700 text-sm md:text-base leading-relaxed wrap-break-word whitespace-pre-line ${
                   !isiPreview && "italic text-gray-300 select-none"

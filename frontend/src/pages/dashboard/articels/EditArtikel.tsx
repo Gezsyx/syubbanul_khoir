@@ -2,20 +2,21 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2, ImageIcon, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
-import { API } from "../../../lib/axios"; // 👈 Hubungkan ke instance Axios kamu
+import { API } from "../../../lib/axios"; 
 
 interface ArtikelForm {
   judul: string;
   isi: string;
-  foto: string;
+  foto: FileList; // 👈 1. Diubah menjadi FileList untuk memproses file upload
 }
 
 export default function EditArtikel() {
-  const { id } = useParams<{ id: string }>(); // 👈 Mengambil ID dari parameter URL
+  const { id } = useParams<{ id: string }>(); 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true); // Loading saat memuat data awal artikel
+  const [fetching, setFetching] = useState(true); 
   const [waktuPembuatan, setWaktuPembuatan] = useState("");
+  const [currentFotoUrl, setCurrentFotoUrl] = useState<string | null>(null); // 👈 2. State untuk menyimpan URL foto lama dari DB
 
   const {
     register,
@@ -27,10 +28,18 @@ export default function EditArtikel() {
 
   // Memantau input form secara real-time untuk komponen Live Preview
   const judulPreview = watch("judul");
-  const fotoPreview = watch("foto");
+  const fotoWatch = watch("foto"); // 👈 3. Pantau input file foto
   const isiPreview = watch("isi");
 
-  // 👈 Fetch data artikel lama berdasarkan ID
+  // Logika Pratinjau Gambar: Jika ada file baru gunakan blob lokal, jika tidak gunakan url lama dari database
+  const handleImagePreview = () => {
+    if (fotoWatch && fotoWatch.length > 0) {
+      return URL.createObjectURL(fotoWatch[0]);
+    }
+    return currentFotoUrl; // Fallback ke URL gambar mading yang sudah ada
+  };
+
+  // Fetch data artikel lama berdasarkan ID
   useEffect(() => {
     const fetchDetailArtikel = async () => {
       try {
@@ -40,12 +49,14 @@ export default function EditArtikel() {
         const artikel = responseData.data || responseData.artikel || responseData;
 
         if (artikel) {
-          // Isi data ke dalam form react-hook-form
+          // 👈 4. Isi data teks ke form. Jangan masukkan string URL foto ke reset() input file.
           reset({
             judul: artikel.judul,
             isi: artikel.isi,
-            foto: artikel.foto,
           });
+
+          // Simpan URL gambar lama ke state pendukung
+          setCurrentFotoUrl(artikel.foto || null);
 
           // Simpan tanggal pembuatan asli untuk ditampilkan di preview
           if (artikel.created_at) {
@@ -69,16 +80,26 @@ export default function EditArtikel() {
     if (id) fetchDetailArtikel();
   }, [id, reset, navigate]);
 
-  // 👈 Kirim pembaruan menggunakan API.put
+  // 👈 5. Mengubah pengiriman payload JSON menjadi FormData
   const onSubmit = async (data: ArtikelForm) => {
     try {
       setLoading(true);
-      const payload = {
-        ...data,
-        updated_at: new Date().toISOString(),
-      };
+      
+      const formData = new FormData();
+      formData.append("judul", data.judul);
+      formData.append("isi", data.isi);
 
-      await API.put(`/artikel/${id}`, payload);
+      // Hanya lampirkan file foto ke FormData jika user memilih file baru di komputernya
+      if (data.foto && data.foto.length > 0) {
+        formData.append("foto", data.foto[0]);
+      }
+
+      // Kirim pembaruan multipart/form-data menggunakan API.put
+      await API.put(`/artikel/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       alert("Artikel berhasil diperbarui!");
       navigate("/artikel");
@@ -110,7 +131,7 @@ export default function EditArtikel() {
         onSubmit={handleSubmit(onSubmit)}
         className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6"
       >
-        {/* KOLOM KIRI: INPUT FORM (40% Lebar pada Layar Besar) */}
+        {/* KOLOM KIRI: INPUT FORM */}
         <div className="lg:col-span-5 space-y-5">
           {/* JUDUL ARTIKEL */}
           <div className="flex flex-col gap-2">
@@ -132,24 +153,20 @@ export default function EditArtikel() {
             )}
           </div>
 
-          {/* URL FOTO UTAMA */}
+          {/* GANTI FOTO COVER (OPTIONAL) */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-gray-700">
-              URL Foto Cover
+              Ganti Foto Cover (Opsional)
             </label>
             <input
-              type="text"
-              placeholder="https://example.com/foto-berita.jpg"
-              {...register("foto", { required: "Foto cover wajib diisi" })}
-              className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 text-sm ${
-                errors.foto
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-200 focus:ring-blue-500"
-              }`}
+              type="file" // 👈 6. Diubah dari tipe text menjadi file input asli
+              accept="image/*"
+              {...register("foto")} // Di halaman edit, validasi { required: true } dihapus agar bisa dilewati
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
-            {errors.foto && (
-              <p className="text-sm text-red-500">{errors.foto.message}</p>
-            )}
+            <p className="text-xs text-gray-400 mt-1">
+              Kosongkan jika tidak ingin mengubah foto cover mading saat ini.
+            </p>
           </div>
 
           {/* ISI KONTEN */}
@@ -159,7 +176,7 @@ export default function EditArtikel() {
             </label>
             <textarea
               rows={12}
-              placeholder="Tuliskan isi berita atau materi artikel lengkap di sini... (Gunakan enter untuk paragraf baru)"
+              placeholder="Tuliskan isi berita atau materi artikel lengkap di sini..."
               {...register("isi", {
                 required: "Isi artikel tidak boleh kosong",
                 minLength: { value: 20, message: "Konten terlalu pendek" },
@@ -176,7 +193,7 @@ export default function EditArtikel() {
           </div>
         </div>
 
-        {/* KOLOM KANAN: LIVE SCROLLABLE PREVIEW (70% Lebar pada Layar Besar) */}
+        {/* KOLOM KANAN: LIVE SCROLLABLE PREVIEW */}
         <div className="lg:col-span-7 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-gray-700">
@@ -184,9 +201,7 @@ export default function EditArtikel() {
             </label>
           </div>
 
-          {/* Jendela Browser Mockup dengan Fitur Scroll Otomatis */}
           <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm h-140 overflow-y-auto custom-scrollbar">
-            {/* Isi Konten Halaman Artikel */}
             <div className="p-6 lg:p-8 space-y-5">
               {/* 1. Komponen Judul Utama */}
               <h1
@@ -197,22 +212,18 @@ export default function EditArtikel() {
                 {judulPreview || "Lorem Ipsum Dolor sit Amet"}
               </h1>
 
-              {/* 2. Metadata: Tanggal asli pembuatan artikel */}
+              {/* 2. Metadata */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 text-xs text-gray-400 font-medium">
                 <div>{waktuPembuatan || "Memuat tanggal..."}</div>
               </div>
 
               {/* 3. Komponen Foto Cover Utama */}
               <div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-50 border flex items-center justify-center group relative">
-                {fotoPreview ? (
+                {handleImagePreview() ? ( // 👈 7. Memakai fungsi gabungan pratinjau (file baru / foto lama)
                   <img
-                    src={fotoPreview}
+                    src={handleImagePreview()!}
                     alt="Article Cover Preview"
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://placehold.co/800x500?text=Format+Tautan+Gambar+Salah";
-                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center text-gray-400 p-4 text-center">
@@ -224,7 +235,7 @@ export default function EditArtikel() {
                 )}
               </div>
 
-              {/* 4. Komponen Isi Berita dengan Dukungan Paragraf Luas */}
+              {/* 4. Komponen Isi Berita */}
               <div
                 className={`text-gray-700 text-sm md:text-base leading-relaxed wrap-break-word whitespace-pre-line ${
                   !isiPreview && "italic text-gray-300 select-none"
