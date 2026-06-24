@@ -14,6 +14,9 @@ import AuthLayout from "./layouts/AuthLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EditUser from "./pages/dashboard/user/EditUser";
 import EditArtikel from "./pages/dashboard/articels/EditArtikel";
+import JadwalIndex from "./pages/dashboard/jadwal/JadwalIndex";
+import CreateJadwal from "./pages/dashboard/jadwal/CreateJadwal";
+import EditJadwal from "./pages/dashboard/jadwal/EditJadwal";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +40,10 @@ function App() {
             <Route path="/artikel" element={<ArtikelIndex />} />
             <Route path="/artikel/create-artikel" element={<CreateArtikel />} />
             <Route path="/artikel/edit-artikel/:id" element={<EditArtikel />} />
+
+            <Route path="/jadwal" element={<JadwalIndex />} />
+            <Route path="/jadwal/create-jadwal" element={<CreateJadwal />} />
+            <Route path="/jadwal/edit-jadwal/:id" element={<EditJadwal />} />
             
             <Route path="/info" element={<InfoIndex />} />
             <Route path="/info/edit-info/:id" element={<EditInfo />} />
