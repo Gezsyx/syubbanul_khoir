@@ -6,6 +6,7 @@ import { API } from "../../../lib/axios";
 interface Info {
   id: number;
   no_telepon: string;
+  email: string;
   alamat: string;
   instagram: string;
   tiktok: string;
@@ -81,7 +82,10 @@ export default function InfoIndex() {
               <thead className="bg-[#0F172A] border-b border-[#0F172A]">
                 <tr>
                   <th className="w-1/4 px-6 py-4 text-sm font-semibold text-white uppercase">
-                    No. Telepon
+                    WhatsApp
+                  </th>
+                  <th className="w-1/4 px-6 py-4 text-sm font-semibold text-white uppercase">
+                    Email
                   </th>
                   <th className="w-1/3 px-6 py-4 text-sm font-semibold text-white uppercase">
                     Alamat
@@ -106,7 +110,11 @@ export default function InfoIndex() {
                       <td className="px-6 py-5 font-medium text-gray-800 wrap-break-word">
                         {info.no_telepon || "-"}
                       </td>
-                      
+
+                      {}
+                      <td className="px-6 py-5 font-medium text-gray-800 wrap-break-word">
+                        {info.email || "-"}
+                      </td>
                       {}
                       <td className="px-6 py-5 text-gray-600 text-sm wrap-break-word whitespace-pre-line">
                         {info.alamat || "-"}

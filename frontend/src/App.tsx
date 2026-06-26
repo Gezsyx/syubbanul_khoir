@@ -17,6 +17,10 @@ import EditArtikel from "./pages/dashboard/articels/EditArtikel";
 import JadwalIndex from "./pages/dashboard/jadwal/JadwalIndex";
 import CreateJadwal from "./pages/dashboard/jadwal/CreateJadwal";
 import EditJadwal from "./pages/dashboard/jadwal/EditJadwal";
+import MainLayouts from "./layouts/mainLayouts";
+import Artikel from "./pages/Artikel";
+import Beranda from "./pages/Beranda";
+import DetailArtikel from "./pages/DetailArtikel";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +30,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <Routes>
+
+        <Route path="/" element={<MainLayouts />}>
+          <Route index element={<Beranda />} />
+          <Route path="/Artikel" element={<Artikel />} />
+          <Route path="/Artikel/:id" element={<DetailArtikel />} />
+        </Route>
+
         <Route element={<AuthLayout />}>
           <Route path="/login-form" element={<LoginForm />} />
         </Route>

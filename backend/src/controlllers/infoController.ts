@@ -61,12 +61,13 @@ export const createInformasi = async (
         const {
             telpon,
             alamat,
+            email,
             instagram,
             tiktok,
             youtube,
         } = req.body;
 
-        if (!telpon || !alamat || !instagram || !tiktok) {
+        if (!telpon || !email || !alamat || !instagram || !tiktok) {
             return res.status(400).json({
                 message:
                     "Telpon, alamat, instagram, dan tiktok wajib diisi",
@@ -77,6 +78,7 @@ export const createInformasi = async (
             data: {
                 telpon,
                 alamat,
+                email,
                 instagram,
                 tiktok,
                 youtube,
@@ -118,6 +120,7 @@ export const updateInformasiById = async (
             telpon,
             alamat,
             instagram,
+            email,
             tiktok,
             youtube,
         } = req.body;
@@ -128,6 +131,8 @@ export const updateInformasiById = async (
                 data: {
                     telpon:
                         telpon ?? existingInformasi.telpon,
+                    email:
+                        email ?? existingInformasi.email,
                     alamat:
                         alamat ?? existingInformasi.alamat,
                     instagram:

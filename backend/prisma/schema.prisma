@@ -13,10 +13,6 @@ model User {
   username  String
   password  String
   foto      String?
-<<<<<<< HEAD
-=======
-
->>>>>>> 8372c51c3adf093c1d90e9577ae8384287cd9162
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -24,7 +20,6 @@ model User {
 }
 
 model Jadwal {
-<<<<<<< HEAD
   id        Int      @id @default(autoincrement())
   acara     String
   lokasi    String
@@ -49,48 +44,12 @@ model Artikel {
 model Informasi {
   id        Int      @id @default(autoincrement())
   telpon    String
+  email     String  @default("syukhoir@gmail.com")
   alamat    String
-  instagram String
+  instagram String  
   tiktok    String
   youtube   String?
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("informasi")
 }
-=======
-  id          Int      @id @default(autoincrement())
-  acara       String
-  lokasi      String
-  tanggal     DateTime
-  waktu       String
-
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  @@map("jadwal") 
-}
-
-model Artikel {
-  id         Int      @id @default(autoincrement())
-  judul      String
-  isi        String
-  foto       String
-  
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@map("artikels") 
-}
-
-model Informasi {
-  id         Int      @id @default(autoincrement())
-  telpon     String
-  alamat     String
-  instagram  String
-  tiktok     String
-  youtube    String?
-
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@map("informasi") 
-}
->>>>>>> 8372c51c3adf093c1d90e9577ae8384287cd9162
