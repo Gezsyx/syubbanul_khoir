@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Footer from "../components/footer.tsx";
 import Header from "../components/header.tsx";
-import { Button } from "../components/button.tsx";
 
 export default function MainLayout() {
   return (

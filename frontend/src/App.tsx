@@ -9,7 +9,7 @@ import CreateArtikel from "./pages/dashboard/articels/CreateArtikel";
 import InfoIndex from "./pages/dashboard/informasi/InfoIndex";
 import EditInfo from "./pages/dashboard/informasi/EditInfo";
 import RouteGuard from "./routes/RouteGuard";
-import LoginForm from "./pages/LoginForm";
+import LoginForm from "./pages/auth/LoginForm";
 import AuthLayout from "./layouts/AuthLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EditUser from "./pages/dashboard/user/EditUser";
@@ -18,9 +18,9 @@ import JadwalIndex from "./pages/dashboard/jadwal/JadwalIndex";
 import CreateJadwal from "./pages/dashboard/jadwal/CreateJadwal";
 import EditJadwal from "./pages/dashboard/jadwal/EditJadwal";
 import MainLayouts from "./layouts/mainLayouts";
-import Artikel from "./pages/Artikel";
-import Beranda from "./pages/Beranda";
-import DetailArtikel from "./pages/DetailArtikel";
+import Artikel from "./pages/main/Artikel";
+import Beranda from "./pages/main/Beranda";
+import DetailArtikel from "./pages/main/DetailArtikel";
 
 const queryClient = new QueryClient();
 
@@ -57,8 +57,14 @@ function App() {
               />
 
               <Route path="/jadwal-index" element={<JadwalIndex />} />
-              <Route path="/jadwal-index/create-jadwal" element={<CreateJadwal />} />
-              <Route path="/jadwal-index/edit-jadwal/:id" element={<EditJadwal />} />
+              <Route
+                path="/jadwal-index/create-jadwal"
+                element={<CreateJadwal />}
+              />
+              <Route
+                path="/jadwal-index/edit-jadwal/:id"
+                element={<EditJadwal />}
+              />
 
               <Route path="/info" element={<InfoIndex />} />
               <Route path="/info/edit-info/:id" element={<EditInfo />} />

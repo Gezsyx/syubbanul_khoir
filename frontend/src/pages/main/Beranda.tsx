@@ -1,52 +1,65 @@
-import Banner from "../assets/Group 61.png";
-import Bgcomejoinus from "../assets/Group 60.png";
-import BgAngka from "../assets/group 63.png"; // Pastikan nama file/huruf besarnya sesuai
-import BgImage from "../assets/bgdashboard.png";
-import Button from "../components/button";
+import { useEffect, useState, useRef } from "react";
+import Banner from "../../assets/Group 61.png";
+import Bgcomejoinus from "../../assets/Group 60.png";
+import BgAngka from "../../assets/group 63.png";
+import BgImage from "../../assets/bgdashboard.png";
+import Button from "../../components/ui/Button";
+import CardArtikel from "../../components/cardArtikel";
+import { API } from "../../lib/axios";
+import { useNavigate } from "react-router-dom";
 
-import CardArtikel from "../components/cardArtikel";
-
-// --- DATA ARTIKEL ---
-const daftarArtikel = [
-  {
-    id: 1,
-    title: "Mendiktisaintek Apresiasi FHIL Universitas Harkat Negeri...",
-    imageUrl:
-      "https://images.unsplash.com/photo-1551818255-e6e10975bc17?auto=format&fit=crop&w=600&q=80",
-    link: "#",
-    category: "Berita",
-    // Hapus baris colSpan dari sini
-  },
-  {
-    id: 2,
-    title:
-      "Pimpinan Harvard Medical School Resmikan Primary Healthcare Impact Lab di Universitas Harkat Negeri",
-    imageUrl:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
-    link: "#",
-    category: "Berita",
-  },
-  {
-    id: 3,
-    title:
-      "Mendiktisaintek Apresiasi FHIL Universitas Harkat Negeri sebagai Model Kolaborasi",
-    imageUrl:
-      "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80",
-    link: "#",
-    category: "Berita",
-  },
-  {
-    id: 4,
-    title:
-      "Mendiktisaintek Apresiasi FHIL Universitas Harkat Negeri sebagai Model Kolaborasi",
-    imageUrl:
-      "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80",
-    link: "#",
-    category: "Berita",
-  },
-];
+// 1. Sesuaikan Interface dengan Schema Database Anda
+interface Artikel {
+  id: number;
+  judul: string;
+  isi: string;
+  foto: string;
+}
 
 export default function Beranda() {
+  const navigate = useNavigate(); // 👈 Tambahkan ini
+  const [daftarArtikel, setDaftarArtikel] = useState<Artikel[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isHovered = useRef(false);
+
+  // 2. Ambil data dari API
+  useEffect(() => {
+    const fetchArtikel = async () => {
+      try {
+        const res = await API.get("/artikel-index");
+        const result = res.data;
+        const data = Array.isArray(result.data) ? result.data : result;
+
+        // Ambil maksimal 7 artikel
+        setDaftarArtikel(data.slice(0, 7));
+      } catch (error) {
+        console.error("Gagal mengambil data artikel:", error);
+      }
+    };
+
+    fetchArtikel();
+  }, []);
+
+  // 3. Sistem Auto-Slide Scroll
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || daftarArtikel.length === 0) return;
+
+    const autoScroll = setInterval(() => {
+      if (isHovered.current) return;
+
+      const { scrollLeft, clientWidth, scrollWidth } = container;
+
+      if (scrollLeft + clientWidth >= scrollWidth - 10) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: 320, behavior: "smooth" });
+      }
+    }, 3500);
+
+    return () => clearInterval(autoScroll);
+  }, [daftarArtikel]);
+
   return (
     <div className="w-full min-h-screen bg-white">
       {/* ================= HERO SECTION ================= */}
@@ -65,31 +78,44 @@ export default function Beranda() {
           </p>
         </div>
       </section>
-            <div className="fixed bottom-0 right-10 z-50 flex justify-center mb-4">
-            <Button label="→ Gabung Sekarang" variant="primary" onClick={() => alert('Gabung Sekarang clicked!')} />
-          </div>
+
+      <div className="fixed bottom-0 right-10 z-50 flex justify-center mb-4">
+        <Button
+          label="→ Gabung Sekarang"
+          variant="primary"
+          onClick={() => alert("Gabung Sekarang clicked!")}
+        />
+      </div>
 
       {/* ================= ARTIKEL DAN BERITA ================= */}
       <section className="py-16 w-full mx-auto overflow-hidden">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-8 text-center md:text-left px-6 md:px-12">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-8 px-6 md:px-12">
           Artikel dan Berita
         </h2>
-        {/* 1. Hapus max-w-7xl agar kontainer ini melebar penuh 100% */}
-        <div className="w-full overflow-x-auto pb-8 scrollbar-hide">
-          {/* 2. Gunakan gap-4 untuk jarak antar card, dan padding kiri/kanan (pl-6 pr-6) 
-      agar kartu pertama/terakhir tidak menempel ke tembok layar saat di-scroll */}
-          <div className="flex w-max gap-4 pl-6 pr-6">
+
+        <div
+          ref={scrollContainerRef}
+          className="w-full overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory px-4 md:px-12"
+          onMouseEnter={() => {
+            isHovered.current = true;
+          }}
+          onMouseLeave={() => {
+            isHovered.current = false;
+          }}
+        >
+          {/* Menggunakan gap-6 dan justify-start agar efek scroll horizontal berjalan rapi */}
+          <div className="flex w-max gap-6 mx-auto justify-start py-4">
             {daftarArtikel.map((artikel) => (
               <div
                 key={artikel.id}
-                // w-[300px] md:w-[400px] bisa kamu atur sesuai keinginan agar lebih lebar
-                className="w-[300px] md:w-[400px] h-[350px] md:h-[400px] flex-shrink-0"
+                /* Menggunakan ukuran fixed landscape yang lebar sesuai gambar */
+                className="w-75 sm:w-112.5 md:w-150 h-50 sm:h-70 md:h-87.5 shrink-0 snap-center rounded-2xl overflow-hidden shadow-lg"
               >
                 <CardArtikel
-                  title={artikel.title}
-                  imageUrl={artikel.imageUrl}
-                  link={artikel.link}
-                  category={artikel.category}
+                  title={artikel.judul}
+                  imageUrl={artikel.foto}
+                  link={`/artikel/${artikel.id}`}
+                  category="Berita"
                 />
               </div>
             ))}
@@ -100,14 +126,13 @@ export default function Beranda() {
           <Button
             label="→ Baca Artikel Lainnya"
             variant="primary"
-            onClick={() => alert("Baca Artikel Lainnya clicked!")}
+            onClick={() => navigate("/artikel")} // 👈 Mengarah ke halaman /artikel
           />
         </div>
       </section>
 
       {/* ================= STATISTIK (FAKTA ANGKA) ================= */}
       <section
-        // Hapus 'bg-center' dari sini, biarkan bg-no-repeat saja
         className="relative w-full py-20 bg-white overflow-hidden flex flex-col items-center justify-center bg-no-repeat"
         style={{
           backgroundImage: `url(${BgAngka})`,
@@ -115,7 +140,6 @@ export default function Beranda() {
           backgroundPosition: "center 90%",
         }}
       >
-        {/* Konten Utama Fakta */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-2">
             Hadroh Syubbanul Khoir dalam Angka
@@ -124,9 +148,8 @@ export default function Beranda() {
             Fakta dan Angka Hadroh Syubbanul Khoir
           </p>
 
-          {/* Kotak-kotak Angka */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-14 max-w-5xl mx-auto">
-            {/* Card Stat 1 - Member Hadroh */}
+            {/* Card Stat 1 */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-10 flex flex-col items-center">
               <div className="bg-[#0f172a] text-white w-20 h-20 rounded-full flex items-center justify-center mb-6">
                 <svg
@@ -148,7 +171,7 @@ export default function Beranda() {
               </p>
             </div>
 
-            {/* Card Stat 2 - Acara */}
+            {/* Card Stat 2 */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-10 flex flex-col items-center">
               <div className="bg-[#0f172a] text-white w-20 h-20 rounded-full flex items-center justify-center mb-6">
                 <svg
@@ -168,7 +191,7 @@ export default function Beranda() {
               <p className="text-sm font-semibold text-gray-700">Acara</p>
             </div>
 
-            {/* Card Stat 3 - Dll */}
+            {/* Card Stat 3 */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-10 flex flex-col items-center">
               <div className="bg-[#0f172a] text-white w-20 h-20 rounded-full flex items-center justify-center mb-6">
                 <svg
@@ -179,7 +202,7 @@ export default function Beranda() {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M12.6444 51.25C11.3815 51.25 10.3125 50.8125 9.4375 49.9375C8.5625 49.0625 8.125 47.9935 8.125 46.7306V9.375C8.125 8.84375 8.30479 8.39833 8.66438 8.03875C9.02396 7.67958 9.46937 7.5 10.0006 7.5C10.5323 7.5 10.9775 7.67958 11.3363 8.03875C11.6954 8.39833 11.875 8.84375 11.875 9.375V46.7306C11.875 46.9231 11.9552 47.0994 12.1156 47.2594C12.2756 47.4198 12.4519 47.5 12.6444 47.5H50C50.5312 47.5 50.9765 47.6798 51.3356 48.0394C51.6952 48.399 51.875 48.8444 51.875 49.3756C51.875 49.9073 51.6952 50.3525 51.3356 50.7113C50.9765 51.0704 50.5312 51.25 50 51.25H12.6444ZM18.8944 43.125C18.2815 43.125 17.7677 42.9177 17.3531 42.5031C16.9381 42.0881 16.7306 41.5742 16.7306 40.9613V24.9038C16.7306 24.2908 16.9381 23.7771 17.3531 23.3625C17.7677 22.9479 18.2815 22.7406 18.8944 22.7406H21.9713C22.6113 22.7406 23.1479 22.9577 23.5812 23.3919C24.0142 23.826 24.2306 24.3642 24.2306 25.0062V40.8688C24.2306 41.5108 24.0142 42.0473 23.5812 42.4781C23.1479 42.9094 22.6113 43.125 21.9713 43.125H18.8944ZM30.7694 43.125C30.1565 43.125 29.6427 42.9177 29.2281 42.5031C28.8131 42.0881 28.6056 41.5742 28.6056 40.9613V12.5C28.6056 11.8596 28.8223 11.3229 29.2556 10.89C29.6885 10.4571 30.2252 10.2406 30.8656 10.2406H33.9425C34.5554 10.2406 35.0692 10.4479 35.4837 10.8625C35.8983 11.2771 36.1056 11.7908 36.1056 12.4038V40.865C36.1056 41.5054 35.8892 42.0421 35.4562 42.475C35.0229 42.9083 34.4862 43.125 33.8462 43.125H30.7694ZM42.6444 43.125C42.0315 43.125 41.5175 42.9177 41.1025 42.5031C40.6879 42.0881 40.4806 41.5742 40.4806 40.9613V35C40.4806 34.3596 40.6973 33.8229 41.1306 33.39C41.5635 32.9571 42.1002 32.7406 42.7406 32.7406H45.8169C46.4302 32.7406 46.9442 32.9479 47.3587 33.3625C47.7733 33.7771 47.9806 34.2908 47.9806 34.9037V40.865C47.9806 41.5054 47.7642 42.0421 47.3312 42.475C46.8979 42.9083 46.3612 43.125 45.7212 43.125H42.6444Z"
+                    d="M12.6444 51.25C11.3815 51.25 10.3125 50.8125 9.4375 49.9375C8.5625 49.0625 8.125 47.9935 8.125 46.7306V9.375C8.125 8.84375 8.30479 8.39833 8.66438 8.03875C9.02396 7.67958 9.46937 7.5 10.0006 7.5C10.5323 7.5 10.9775 7.67958 11.3363 8.03875C11.6954 8.39833 11.875 8.84375 11.875 9.375V46.7306C11.875 46.9231 11.9552 47.0994 12.1156 47.2594C12.2756 47.4198 12.4519 47.5 12.6444 47.5H50 camps 50.5312 47.5 50.9765 47.6798 51.3356 48.0394C51.6952 48.399 51.875 48.8444 51.875 49.3756C51.875 49.9073 51.6952 50.3525 51.3356 50.7113C50.9765 51.25 50.5312 51.25 50 51.25H12.6444ZM18.8944 43.125C18.2815 43.125 17.7677 42.9177 17.3531 42.5031C16.9381 42.0881 16.7306 41.5742 16.7306 40.9613V24.9038C16.7306 24.2908 16.9381 23.7771 17.3531 23.3625C17.7677 22.9479 18.2815 22.7406 18.8944 22.7406H21.9713C22.6113 22.7406 23.1479 22.9577 23.5812 23.3919C24.0142 23.826 24.2306 24.3642 24.2306 25.0062V40.8688C24.2306 41.5108 24.0142 42.0473 23.5812 42.4781C23.1479 42.9094 22.6113 43.125 21.9713 43.125H18.8944ZM30.7694 43.125C30.1565 43.125 29.6427 42.9177 29.2281 42.5031C28.8131 42.0881 28.6056 41.5742 28.6056 40.9613V12.5C28.6056 11.8596 28.8223 11.3229 29.2556 10.89C29.6885 10.4571 30.2252 10.2406 30.8656 10.2406H33.9425C34.5554 10.2406 35.0692 10.4479 35.4837 10.8625C35.8983 11.2771 36.1056 11.7908 36.1056 12.4038V40.865C36.1056 41.5054 35.8892 42.0421 35.4562 42.475C35.0229 42.9083 34.4862 43.125 33.8462 43.125H30.7694ZM42.6444 43.125C42.0315 43.125 41.5175 42.9177 41.1025 42.5031C40.6879 42.0881 40.4806 41.5742 40.4806 40.9613V35C40.4806 34.3596 40.6973 33.8229 41.1306 33.39C41.5635 32.9571 42.1002 32.7406 42.7406 32.7406H45.8169C46.4302 32.7406 46.9442 32.9479 47.3587 33.3625C47.7733 33.7771 47.9806 34.2908 47.9806 34.9037V40.865C47.9806 41.5054 47.7642 42.0421 47.3312 42.475C46.8979 42.9083 46.3612 43.125 45.7212 43.125H42.6444Z"
                     fill="white"
                   />
                 </svg>

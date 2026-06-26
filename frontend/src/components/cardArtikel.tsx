@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 interface CardArtikelProps {
   title: string;
   imageUrl: string;
@@ -5,41 +7,33 @@ interface CardArtikelProps {
   category?: string;
 }
 
-export default function CardArtikel({
-  title,
-  imageUrl,
-  link,
-  category,
-}: CardArtikelProps) {
+export default function CardArtikel({ title, imageUrl, link }: CardArtikelProps) {
   return (
-    // Tambahkan w-full dan h-full di sini agar menyesuaikan tinggi Grid
-    <article className="group relative rounded-2xl overflow-hidden cursor-pointer shadow-md w-full h-full">
+    <Link to={link} className="relative block w-full h-full group overflow-hidden rounded-2xl">
+      {/* 1. Background Image */}
       <img
         src={imageUrl}
         alt={title}
-        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div className="absolute top-3 left-3 bg-[#35A2FD]/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-sm shadow-2xl z-10 border border-white/10">
-        {category}
-      </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+      {/* 2. Gradient Overlay (Membuat teks putih terbaca jelas di atas gambar) */}
+      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent"></div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end h-full z-10">
-        <h3 className="text-white text-sm md:text-base font-semibold leading-snug mb-3 max-w-[90%] line-clamp-3">
+      {/* 3. Konten Teks di Dalam Gambar */}
+      <div className="absolute bottom-0 inset-x-0 p-4 md:p-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        
+        {/* Judul Artikel (Sisi Kiri) */}
+        <h3 className="text-white font-bold text-sm sm:text-base md:text-xl leading-snug max-w-xl line-clamp-2">
           {title}
         </h3>
 
-        <a
-          href={link}
-          className="text-gray-300 text-[10px] md:text-xs flex items-center self-end hover:text-white transition-colors"
-        >
-          Jelajahi lebih lanjut{" "}
-          <span className="ml-1 group-hover:translate-x-1 transition-transform">
-            →
-          </span>
-        </a>
+        {/* Link Jelajahi (Sisi Kanan) */}
+        <span className="text-white/80 text-xs md:text-sm font-medium whitespace-nowrap shrink-0 group-hover:text-white transition-colors">
+          → Jelajahi lebih lanjut
+        </span>
+        
       </div>
-    </article>
+    </Link>
   );
 }
