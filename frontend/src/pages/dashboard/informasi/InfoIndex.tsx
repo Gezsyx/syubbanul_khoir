@@ -5,7 +5,7 @@ import { API } from "../../../lib/axios";
 
 interface Info {
   id: number;
-  no_telepon: string;
+  telepon: string;
   email: string;
   alamat: string;
   instagram: string;
@@ -108,7 +108,7 @@ export default function InfoIndex() {
                     <tr key={info.id} className="hover:bg-gray-50/50 transition-colors">
                       {}
                       <td className="px-6 py-5 font-medium text-gray-800 wrap-break-word">
-                        {info.no_telepon || "-"}
+                        {info.telepon || "-"}
                       </td>
 
                       {}

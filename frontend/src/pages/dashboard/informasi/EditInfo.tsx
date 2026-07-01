@@ -5,7 +5,7 @@ import { Loader2, Save } from "lucide-react";
 import { API } from "../../../lib/axios";
 
 interface InfoForm {
-  no_telepon: string;
+  telepon: string;
   email: string;
   alamat: string;
   instagram: string;
@@ -36,7 +36,7 @@ export default function EditInfo() {
         const data = responseData.data || responseData;
 
         reset({
-          no_telepon: data.no_telepon || "",
+          telepon: data.telepon || "",
           email: data.email || "",
           alamat: data.alamat || "",
           instagram: data.instagram || "",
@@ -105,18 +105,18 @@ export default function EditInfo() {
             <input
               type="text"
               placeholder="Contoh: 08123456789"
-              {...register("no_telepon", {
+              {...register("telepon", {
                 required: "Nomor telepon wajib diisi",
               })}
               className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 text-sm ${
-                errors.no_telepon
+                errors.telepon
                   ? "border-red-500 focus:ring-red-500"
                   : "border-gray-200 focus:ring-blue-500"
               }`}
             />
-            {errors.no_telepon && (
+            {errors.telepon && (
               <p className="text-sm text-red-500">
-                {errors.no_telepon.message}
+                {errors.telepon.message}
               </p>
             )}
           </div>

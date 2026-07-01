@@ -59,7 +59,7 @@ export const createInformasi = async (
 ) => {
     try {
         const {
-            telpon,
+            telepon,
             alamat,
             email,
             instagram,
@@ -67,7 +67,7 @@ export const createInformasi = async (
             youtube,
         } = req.body;
 
-        if (!telpon || !email || !alamat || !instagram || !tiktok) {
+        if (!telepon || !email || !alamat || !instagram || !tiktok) {
             return res.status(400).json({
                 message:
                     "Telpon, alamat, instagram, dan tiktok wajib diisi",
@@ -76,7 +76,7 @@ export const createInformasi = async (
 
         const newInformasi = await prisma.informasi.create({
             data: {
-                telpon,
+                telepon,
                 alamat,
                 email,
                 instagram,
@@ -117,7 +117,7 @@ export const updateInformasiById = async (
         }
 
         const {
-            telpon,
+            telepon,
             alamat,
             instagram,
             email,
@@ -129,8 +129,8 @@ export const updateInformasiById = async (
             await prisma.informasi.update({
                 where: { id },
                 data: {
-                    telpon:
-                        telpon ?? existingInformasi.telpon,
+                    telepon:
+                        telepon ?? existingInformasi.telepon,
                     email:
                         email ?? existingInformasi.email,
                     alamat:
