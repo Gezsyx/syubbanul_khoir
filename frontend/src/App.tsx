@@ -22,6 +22,7 @@ import Artikel from "./pages/main/Artikel";
 import Beranda from "./pages/main/Beranda";
 import DetailArtikel from "./pages/main/DetailArtikel";
 import Tentang from "./pages/main/Tentang";
+import Jadwal from "./pages/main/Jadwal";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/Artikel" element={<Artikel />} />
             <Route path="/Artikel/:id" element={<DetailArtikel />} />
             <Route path="/Tentang" element={<Tentang />} />
+            <Route path="/Jadwal" element={<Jadwal />} />
           </Route>
 
           <Route element={<AuthLayout />}>
